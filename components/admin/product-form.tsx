@@ -82,29 +82,7 @@ export function AdminProductForm() {
           r.readAsDataURL(file)
         })
       }
-
-      // const res = await fetch("/api/products/add", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     name,
-      //     description,
-      //     price,
-      //     category,
-      //     imageData: imageData || "/menu-item.jpg",
-      //   }),
-      // })
-
-      // if (!res.ok) {
-      //   toast({
-      //     variant: "destructive",
-      //     title: "Save failed",
-      //     description: "Could not save product.",
-      //   })
-      //   onCancelImage()
-      //   return
-      // }
-
+      
       toast({
         title: "Product saved",
         description: `${name} added to menu.`,

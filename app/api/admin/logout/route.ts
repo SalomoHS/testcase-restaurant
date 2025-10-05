@@ -4,5 +4,5 @@ import { getAdminCookieName } from "@/lib/auth"
 
 export async function POST() {
   cookies().delete(getAdminCookieName())
-  return NextResponse.redirect(new URL("/admin/login", process.env.NEXT_PUBLIC_URL))
+  return NextResponse.redirect(new URL(process.env.NEXT_PUBLIC_URL || ""))
 }
