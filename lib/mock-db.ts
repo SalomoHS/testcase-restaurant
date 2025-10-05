@@ -76,7 +76,8 @@ async function seed() {
 export async function listProducts() {
   await seed()
   // newest first
-  return [...db.products].sort((a, b) => b.createdAt - a.createdAt)
+  const menus = await fetchMenu()
+  return [...menus].sort((a, b) => b.createdAt - a.createdAt)
 }
 
 export function addProduct(p: Omit<Product, "id" | "createdAt">): Product {
