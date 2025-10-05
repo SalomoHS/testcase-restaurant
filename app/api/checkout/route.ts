@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   let parameter = {
     "transaction_details": {
         "order_id": order.id,
-        "gross_amount": 10000 * 2
+        "gross_amount": items.reduce((sum, i) => sum + i.price * i.quantity, 0)
     },
     "item_details": items.map((i) => ({
             name: i.name,
