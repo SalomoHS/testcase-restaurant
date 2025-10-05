@@ -7,13 +7,14 @@ import { usePathname } from "next/navigation"
 import { ShoppingCart } from "lucide-react"
 import useSWR from "swr"
 import { useRouter } from "next/navigation"
+
 export function SiteHeader() {
   const pathname = usePathname()
   const showCart = pathname?.startsWith("/menu")
   const router = useRouter()
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" })
-    router.push("/") // redirect client-side
+    router.push("/") 
   }
   const { data, isLoading } = useSWR("/api/admin/me", (url: string) =>
     fetch(url, { credentials: "same-origin", cache: "no-store" }).then((r) => r.json()),
@@ -43,19 +44,19 @@ export function SiteHeader() {
           ) : null}
           {isLoading ? null : isAdmin ? (
             pathname === "/admin/dashboard" ? (
-              <Button size="sm" variant="secondary" onClick={handleLogout}>
+              <Button size="sm" variant="secondary" onClick={handleLogout} className="cursor-pointer">
                 Sign out
               </Button>
             ) : (
               <Link href="/admin/dashboard">
-                <Button size="sm" variant="default">
+                <Button size="sm" variant="default" className="cursor-pointer">
                   Admin
                 </Button>
               </Link>
             )
           ) : (
             <Link href="/admin/dashboard">
-              <Button size="sm" variant="default">
+              <Button size="sm" variant="default" className="cursor-pointer">
                 Admin
               </Button>
             </Link>

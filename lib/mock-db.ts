@@ -2,8 +2,8 @@ export type Product = {
   id: string
   name: string
   description: string
-  price: number // cents
-  imageData: string // data URL (base64) or placeholder URL
+  price: number 
+  imageData: string 
   category: "food" | "drink"
   createdAt: number
 }
@@ -11,29 +11,18 @@ export type Product = {
 export type OrderItem = {
   productId: string
   name: string
-  price: number // cents at time of order
+  price: number 
   quantity: number
 }
 
 export type Order = {
   id: string
   items: OrderItem[]
-  total: number // cents
+  total: number 
   status: "pending" | "confirmed"
   createdAt: number
 }
 
-type DB = {
-  products: Product[]
-  orders: Order[]
-  seeded: boolean
-}
-
-const globalAny = globalThis as any
-if (!globalAny.__MOCK_DB__) {
-  globalAny.__MOCK_DB__ = { products: [], orders: [], seeded: false } as DB
-}
-const db: DB = globalAny.__MOCK_DB__
 async function fetchMenu(): Promise<Product[]> {
   try {
     const res = await fetch(process.env.NEXT_PUBLIC_FETCH_PRODUCT_URL || "")
@@ -65,51 +54,13 @@ async function fetchMenu(): Promise<Product[]> {
     return []
   }
 }
-async function seed() {
-  if (db.seeded) return
-  const external = await fetchMenu()
-  const starter = [...external]
-  db.products.push(...starter)
-  db.seeded = true
-}
 
 export async function listProducts() {
-  await seed()
-  // newest first
   const menus = await fetchMenu()
   return [...menus].sort((a, b) => b.createdAt - a.createdAt)
 }
 
-export function addProduct(p: Omit<Product, "id" | "createdAt">): Product {
-  seed()
-  const id = `p_${Math.random().toString(36).slice(2, 9)}`
-  const product: Product = { ...p, id, createdAt: Date.now() }
-  db.products.unshift(product)
-  return product
-}
-
-export function findProduct(id: string) {
-  seed()
-  return db.products.find((p) => p.id === id) || null
-}
-
-export function createOrder(items: OrderItem[]): Order {
-  seed()
-  const id = `o_${Math.random().toString(36).slice(2, 10)}`
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const order: Order = {
-    id,
-    items,
-    total,
-    status: "confirmed", // mock payment confirms immediately
-    createdAt: Date.now(),
-  }
-  db.orders.unshift(order)
-  return order
-}
-
 export async function createPendingOrder(items: OrderItem[]): Promise<Order> {
-  seed()
   const id = `o_${Math.random().toString(36).slice(2, 10)}`
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
@@ -136,13 +87,10 @@ export async function createPendingOrder(items: OrderItem[]): Promise<Order> {
     createdAt: Date.now(),
   }
 
-  
-  db.orders.unshift(order)
   return order
 }
 
 export async function getOrder(id: string) {
-  seed()
   const res = await fetch(process.env.NEXT_PUBLIC_GET_ORDER_URL || "", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -157,7 +105,6 @@ export async function getOrder(id: string) {
 }
 
 export async function markOrderConfirmed(id: string) {
-  seed()
   try {
     await fetch(process.env.NEXT_PUBLIC_CHECKOUT_SUCCESS_URL || "", {
       method: "POST",
@@ -170,30 +117,5 @@ export async function markOrderConfirmed(id: string) {
   } catch (err) {
     console.error("Product add error:", (err as Error).message)
   }
-
-  const order = db.orders.find((o) => o.id === id)
-  if (order) order.status = "confirmed"
-  return order || null
-}
-
-export async function listOrders() {
-  seed()
-  const res = await fetch(process.env.NEXT_PUBLIC_GET_ORDER_URL || "", {
-    headers: { "Content-Type": "application/json" },
-  })
-  
-  if (!res.ok) throw new Error("Order not found")
-  const data = await res.json()
-  if (!Array.isArray(data)) return []
-
-  // optional: convert fields if needed
-  return data
-    .map((o: any) => ({
-      id: o.id,
-      items: o.items,
-      price: o.price,
-      createdAt: new Date(o.created_at ?? Date.now()).getTime(),
-    }))
-    .sort((a, b) => b.createdAt - a.createdAt)
-
+  return
 }

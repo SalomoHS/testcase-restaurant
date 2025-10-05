@@ -12,10 +12,10 @@ export default function HomePage() {
           </p>
           <div className="flex gap-3">
             <Link href="/menu">
-              <Button>Browse Menu</Button>
+              <Button className="cursor-pointer">Browse Menu</Button>
             </Link>
             <Link href="/admin/dashboard">
-              <Button variant="outline">Admin</Button>
+              <Button className="cursor-pointer" variant="outline">Admin</Button>
             </Link>
           </div>
         </div>

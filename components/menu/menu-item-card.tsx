@@ -28,6 +28,7 @@ export function MenuItemCard({ product }: { product: Product }) {
         {cartItem ? (
           <div className="flex items-center gap-2">
             <Button
+              className="cursor-pointer"
               size="icon"
               variant="outline"
               onClick={() => {
@@ -38,6 +39,7 @@ export function MenuItemCard({ product }: { product: Product }) {
             </Button>
             <span className="w-8 text-center font-medium">{cartItem.quantity}</span>
             <Button
+              className="cursor-pointer"
               size="icon"
               variant="outline"
               onClick={() => {
@@ -60,6 +62,7 @@ export function MenuItemCard({ product }: { product: Product }) {
                 1,
               )
             }}
+            className="cursor-pointer"
           >
             Add to cart
           </Button>

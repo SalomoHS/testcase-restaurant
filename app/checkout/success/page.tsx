@@ -32,7 +32,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: { or
         </div>
       </div>
       <div className="pt-2">
-        <Button asChild>
+        <Button className="cursor-pointer" asChild>
           <Link href="/menu">Back to menu</Link>
         </Button>
       </div>

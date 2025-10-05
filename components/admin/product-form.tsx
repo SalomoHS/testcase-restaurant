@@ -82,7 +82,7 @@ export function AdminProductForm() {
           r.readAsDataURL(file)
         })
       }
-      
+
       toast({
         title: "Product saved",
         description: `${name} added to menu.`,
@@ -205,7 +205,7 @@ export function AdminProductForm() {
       <div className={cn("grid gap-4",file ? "md:grid-cols-2 md:justify-items-start" : "justify-items-center")}>
         <div className="space-y-2 mx-auto max-w-sm text-center">
           <Label htmlFor="photo" className="block">Product photo</Label>
-          <Input id="photo" type="file" accept="image/*" onChange={onFileChange} required ref={fileInputRef} />
+          <Input id="photo" className="cursor-pointer" type="file" accept="image/*" onChange={onFileChange} required ref={fileInputRef} />
           {!file && (
             <p className="text-sm text-muted-foreground">
               Choose a photo to continue. We’ll auto-fill the details for you.
@@ -220,17 +220,17 @@ export function AdminProductForm() {
               />
               {file && confirmPending && (
                 <div className="mt-2 flex items-center justify-center gap-2">
-                  <Button type="button" variant="secondary" onClick={onCancelImage}>
+                  <Button type="button" className="cursor-pointer" variant="secondary" onClick={onCancelImage}>
                     Cancel
                   </Button>
-                  <Button type="button" onClick={onConfirmImage} disabled={confirmLoading}>
+                  <Button type="button" className="cursor-pointer" onClick={onConfirmImage} disabled={confirmLoading}>
                     {confirmLoading ? "Confirming..." : "Confirm image"}
                   </Button>
                 </div>
               )}
               {file && !confirmPending && (
                 <div className="mt-2 flex items-center justify-center">
-                  <Button type="button" variant="secondary" onClick={onCancelImage}>
+                  <Button type="button" className="cursor-pointer" variant="secondary" onClick={onCancelImage}>
                     Cancel
                   </Button>
                 </div>
@@ -252,7 +252,7 @@ export function AdminProductForm() {
                 }}
                 disabled={confirmLoading || confirmPending || inputDisabled}
                 className={cn(
-                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 hover:cursor-not-allowed" : ""
+                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""
                 )}
                 required
               />
@@ -287,7 +287,7 @@ export function AdminProductForm() {
                 }}
                 disabled={confirmLoading || confirmPending || inputDisabled}
                 className={cn(
-                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 hover:cursor-not-allowed" : ""
+                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""
                 )}
                 required
               />
@@ -317,7 +317,7 @@ export function AdminProductForm() {
       </div>
       {file && (
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={submitting || inputDisabled || !file || confirmPending || confirmLoading || category === "none"}>
+          <Button type="submit" className="cursor-pointer" disabled={submitting || inputDisabled || !file || confirmPending || confirmLoading || category === "none"}>
             {submitting ? "Saving..." : "Save product"}
           </Button>
         </div>

@@ -90,7 +90,7 @@ export default function CartPage() {
                     aria-label="Decrease quantity"
                     onClick={() => setQuantity(i.productId, Math.max(1, i.quantity - 1))}
                     disabled={i.quantity <= 1}
-                    className="h-8 w-8"
+                    className="h-8 w-8 cursor-pointer"
                   >
                     -
                   </Button>
@@ -107,11 +107,11 @@ export default function CartPage() {
                     size="icon"
                     aria-label="Increase quantity"
                     onClick={() => setQuantity(i.productId, i.quantity + 1)}
-                    className="h-8 w-8"
+                    className="h-8 w-8 cursor-pointer"
                   >
                     +
                   </Button>
-                  <Button variant="ghost" onClick={() => removeItem(i.productId)}>
+                  <Button className="cursor-pointer" variant="ghost" onClick={() => removeItem(i.productId)}>
                     Remove
                   </Button>
                 </div>
@@ -126,7 +126,7 @@ export default function CartPage() {
               </Button>
               <Dialog>
               <DialogTrigger asChild>
-                <Button>Proceed to checkout</Button>
+                <Button className="cursor-pointer">Proceed to checkout</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -161,10 +161,10 @@ export default function CartPage() {
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button className="cursor-pointer" variant="outline">Cancel</Button>
                   </DialogClose>
                   <DialogClose asChild>
-                    <Button onClick={() => checkout()}>Confirm & Pay</Button>
+                    <Button className="cursor-pointer" onClick={() => checkout()}>Confirm & Pay</Button>
                   </DialogClose>
                 </DialogFooter>
               </DialogContent>
