@@ -10,7 +10,7 @@ let snap = new Midtrans.Snap({
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { items, paymentMethod } = body || {}
+  const { items } = body || {}
   if (!Array.isArray(items) || items.length === 0) {
     return new NextResponse("No items", { status: 400 })
   }

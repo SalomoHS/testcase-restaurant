@@ -19,7 +19,6 @@ import {
 export default function CartPage() {
   const { items, total, setQuantity, removeItem, clear } = useCart()
   const router = useRouter()
-  const [method, setMethod] = React.useState<"bca_va">("bca_va")
   React.useEffect(() => {
     const snapScript = "https://app.sandbox.midtrans.com/snap/snap.js"
     const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
@@ -36,12 +35,12 @@ export default function CartPage() {
     }
 
   }, [])  
-  async function checkout(pm: "bca_va" = "bca_va") {
+  async function checkout() {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, paymentMethod: pm }),
+        body: JSON.stringify({ items }),
       })
       console.log(res)
       
@@ -53,16 +52,8 @@ export default function CartPage() {
           router.push(`/checkout/success?orderId=${encodeURIComponent(data.order_id)}`)
         }
       })
-      // const orderId = data?.order?.id
-      // const va = data?.payment?.vaNumber
-      // if (!orderId) throw new Error("No order id")
-      // router.push(
-      //   `/checkout/pending?orderId=${encodeURIComponent(orderId)}&method=${encodeURIComponent(pm)}${
-      //     va ? `&va=${encodeURIComponent(va)}` : ""
-      //   }`,
-      // )
     } catch (e) {
-      console.error("[v0] Checkout error:", (e as Error).message)
+      console.error("Checkout error:", (e as Error).message)
       alert("Checkout failed")
     }
   }
@@ -171,7 +162,7 @@ export default function CartPage() {
                     <Button variant="outline">Cancel</Button>
                   </DialogClose>
                   <DialogClose asChild>
-                    <Button onClick={() => checkout(method)}>Confirm & Pay</Button>
+                    <Button onClick={() => checkout()}>Confirm & Pay</Button>
                   </DialogClose>
                 </DialogFooter>
               </DialogContent>
