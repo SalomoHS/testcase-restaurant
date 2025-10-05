@@ -5,6 +5,7 @@ import { useCart } from "@/lib/cart"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { markOrderConfirmed } from "@/lib/mock-db"
 import {
   Dialog,
   DialogTrigger,
@@ -37,19 +38,20 @@ export default function CartPage() {
   }, [])  
   async function checkout() {
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/checkout/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }),
       })
-      console.log(res)
       
       if (!res.ok) throw new Error("Checkout failed")
       const data = await res.json()
+
       window.snap.pay(data.token,{
-        onSuccess: function() {
-          router.push(`/checkout/success?orderId=${encodeURIComponent(data.order_id)}`)
+        onSuccess: async function() {
+          markOrderConfirmed(data.order.id)
           clear()
+          router.push(`/checkout/success?orderId=${encodeURIComponent(data.order.id)}`)
         }
       })
     } catch (e) {

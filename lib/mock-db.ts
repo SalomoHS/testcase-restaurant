@@ -67,7 +67,6 @@ async function fetchMenu(): Promise<Product[]> {
 }
 async function seed() {
   if (db.seeded) return
-  const now = Date.now()
   const external = await fetchMenu()
   const starter = [...external]
   db.products.push(...starter)
@@ -108,10 +107,26 @@ export function createOrder(items: OrderItem[]): Order {
   return order
 }
 
-export function createPendingOrder(items: OrderItem[]): Order {
+export async function createPendingOrder(items: OrderItem[]): Promise<Order> {
   seed()
   const id = `o_${Math.random().toString(36).slice(2, 10)}`
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+
+  try {
+    await fetch(process.env.NEXT_PUBLIC_CHECKOUT_PENDING_URL || "", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: id,
+        items: items,
+        price: total,
+        status: "pending"
+      }),
+    })
+  } catch (err) {
+    console.error("Product add error:", (err as Error).message)
+  }
+
   const order: Order = {
     id,
     items,
@@ -119,23 +134,65 @@ export function createPendingOrder(items: OrderItem[]): Order {
     status: "pending",
     createdAt: Date.now(),
   }
+
+  
   db.orders.unshift(order)
   return order
 }
 
-export function getOrder(id: string) {
+export async function getOrder(id: string) {
   seed()
-  return db.orders.find((o) => o.id === id) || null
+  const res = await fetch(process.env.NEXT_PUBLIC_GET_ORDER_URL || "", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      orderId: id,
+    }),
+  })
+  
+  if (!res.ok) throw new Error("Order not found")
+  const data = await res.json()
+  return data
 }
 
-export function markOrderConfirmed(id: string) {
+export async function markOrderConfirmed(id: string) {
   seed()
+  try {
+    await fetch(process.env.NEXT_PUBLIC_CHECKOUT_SUCCESS_URL || "", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: id,
+        status: "success"
+      }),
+    })
+  } catch (err) {
+    console.error("Product add error:", (err as Error).message)
+  }
+
   const order = db.orders.find((o) => o.id === id)
   if (order) order.status = "confirmed"
   return order || null
 }
 
-export function listOrders() {
+export async function listOrders() {
   seed()
-  return [...db.orders].sort((a, b) => b.createdAt - a.createdAt)
+  const res = await fetch(process.env.NEXT_PUBLIC_GET_ORDER_URL || "", {
+    headers: { "Content-Type": "application/json" },
+  })
+  
+  if (!res.ok) throw new Error("Order not found")
+  const data = await res.json()
+  if (!Array.isArray(data)) return []
+
+  // optional: convert fields if needed
+  return data
+    .map((o: any) => ({
+      id: o.id,
+      items: o.items,
+      price: o.price,
+      createdAt: new Date(o.created_at ?? Date.now()).getTime(),
+    }))
+    .sort((a, b) => b.createdAt - a.createdAt)
+
 }

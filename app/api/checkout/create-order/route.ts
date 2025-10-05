@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse("No items", { status: 400 })
   }
 
-  const order = createPendingOrder(items)
+  const order = await createPendingOrder(items)
   let parameter = {
     "transaction_details": {
         "order_id": order.id,
@@ -30,9 +30,8 @@ export async function POST(req: NextRequest) {
 
    
   const token = await snap.createTransaction(parameter)
-  console.log(token);
 
   return NextResponse.json({
-    token: token.token, order_id: order.id
+    token: token.token, order: order
   })
 }
