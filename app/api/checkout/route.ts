@@ -27,10 +27,10 @@ export async function POST(req: NextRequest) {
   //               "order_id": ~~(Math.random() * 100)+1,
   //           }
   //       };
-
+  const order = createPendingOrder(items)
   let parameter = {
     "transaction_details": {
-        "order_id": ~~(Math.random() * 100)+1,
+        "order_id": order.id,
         "gross_amount": 10000 * 2
     },
     "item_details": [{
@@ -51,10 +51,10 @@ export async function POST(req: NextRequest) {
   const token = await snap.createTransaction(parameter)
   console.log(token);
 
-  const order = createPendingOrder(items)
+  
   const method = paymentMethod || "bca_va"
   const vaNumber = `3901${Math.floor(100000000 + Math.random() * 900000000)}`
   return NextResponse.json({
-    token: token.token
+    token: token.token, order_id: order.id
   })
 }

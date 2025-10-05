@@ -1,12 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { addProduct, listProducts } from "@/lib/mock-db"
+import { addProduct } from "@/lib/mock-db"
 import { isAdminFromCookies } from "@/lib/auth"
 
 export const dynamic = "force-dynamic"
-
-export async function GET() {
-  return NextResponse.json({ products: listProducts() })
-}
 
 export async function POST(req: NextRequest) {
   if (!isAdminFromCookies()) {
@@ -24,5 +20,6 @@ export async function POST(req: NextRequest) {
     imageData,
     category,
   })
+  
   return NextResponse.json({ product }, { status: 201 })
 }

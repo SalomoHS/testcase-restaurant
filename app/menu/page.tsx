@@ -1,6 +1,6 @@
 import { MenuItemCard } from "@/components/menu/menu-item-card"
 import { listProducts, type Product } from "@/lib/mock-db"
-
+import { FloatingCartWidget } from "@/components/menu/floating-cart-widget"
 export const dynamic = "force-dynamic"
 
 async function fetchExternalMenu(): Promise<Product[]> {
@@ -11,19 +11,18 @@ async function fetchExternalMenu(): Promise<Product[]> {
     const data = await res.json()
     if (!Array.isArray(data)) return []
 
-    const now = Date.now()
-    return data.map((raw: any, idx: number) => {
-      const name = raw.name ?? raw.title ?? "Menu Item"
-      const description = raw.description ?? raw.desc ?? ""
-      // Try to read price in cents or dollars; convert dollars -> cents
+    return data.map((raw: any) => {
+      const name = raw.name ?? "Menu Item"
+      const description = raw.desc ?? ""
       const price = raw.price ?? 0
       
-      const imageData = raw.image ?? raw.imageUrl ?? raw.photo ?? "/restaurant-menu-item.jpg"
-      const categoryRaw = String(raw.category ?? raw.type ?? "").toLowerCase()
+      const imageData = raw.image ?? "/restaurant-menu-item.jpg"
+      const categoryRaw = String(raw.category ?? "").toLowerCase()
       const category: Product["category"] = categoryRaw.includes("drink") ? "drink" : "food"
-
+      const now = raw.created_at
+      const id = raw.id
       return {
-        id: `ext_${idx}_${Math.random().toString(36).slice(2, 7)}`,
+        id: id,
         name,
         description,
         price,
@@ -38,13 +37,13 @@ async function fetchExternalMenu(): Promise<Product[]> {
 }
 
 export default async function MenuPage() {
-  const external = await fetchExternalMenu()
+  const external = await listProducts()
   const products = [...external]
-
   const foods = products.filter((p) => p.category === "food")
   const drinks = products.filter((p) => p.category === "drink")
 
   return (
+    <>
     <main className="mx-auto max-w-6xl p-6 space-y-10">
       <section>
         <h2 className="text-2xl font-semibold mb-4">Food</h2>
@@ -63,5 +62,7 @@ export default async function MenuPage() {
         </div>
       </section>
     </main>
+    <FloatingCartWidget />
+    </>
   )
 }

@@ -5,11 +5,14 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { useCart } from "@/lib/cart"
 import { useToast } from "@/hooks/use-toast"
 import type { Product } from "@/lib/mock-db"
+import { Minus, Plus } from "lucide-react"
 
 export function MenuItemCard({ product }: { product: Product }) {
-  const { addItem } = useCart()
+  const { items, addItem, setQuantity } = useCart()
   const { toast } = useToast()
-  const price = (product.price)
+  const price = product.price
+
+  const cartItem = items.find((item) => item.productId === product.id)
 
   return (
     <Card className="overflow-hidden">
@@ -22,25 +25,45 @@ export function MenuItemCard({ product }: { product: Product }) {
       </CardContent>
       <CardFooter className="flex items-center justify-between">
         <div className="font-medium">Rp{price}</div>
-        <Button
-          onClick={() => {
-            addItem(
-              {
-                productId: product.id,
-                name: product.name,
-                price: product.price,
-                imageData: product.imageData,
-              },
-              1,
-            )
-            toast({
-              title: "Added to cart",
-              description: `${product.name} added to your cart.`,
-            })
-          }}
-        >
-          Add to cart
-        </Button>
+        {cartItem ? (
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                setQuantity(product.id, cartItem.quantity - 1)
+              }}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="w-8 text-center font-medium">{cartItem.quantity}</span>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                setQuantity(product.id, cartItem.quantity + 1)
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={() => {
+              addItem(
+                {
+                  productId: product.id,
+                  name: product.name,
+                  price: product.price,
+                  imageData: product.imageData,
+                },
+                1,
+              )
+            }}
+          >
+            Add to cart
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )

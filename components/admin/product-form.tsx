@@ -11,26 +11,6 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
-function autoGenerateFromFile(file?: File) {
-  // Simplified "AI" extraction: derive name from filename and randomize price
-  const base = file?.name?.split(".")?.[0]?.replace(/[-_]/g, " ") || "Chef Special"
-  const templates = [
-    "A delightful selection prepared fresh daily.",
-    "House favorite crafted with care.",
-    "Simple, wholesome, and delicious.",
-    "Comfort classic with a modern twist.",
-  ]
-  const desc = templates[Math.floor(Math.random() * templates.length)]
-  const price = Math.floor(599 + Math.random() * 2000) // 5.99 to 25.99 in cents
-  return {
-    name: base
-      .trim()
-      .replace(/\s+/g, " ")
-      .replace(/\b\w/g, (m) => m.toUpperCase()),
-    description: desc,
-    price,
-  }
-}
 
 export function AdminProductForm() {
   const [file, setFile] = useState<File | null>(null)
@@ -42,6 +22,7 @@ export function AdminProductForm() {
   const [submitting, setSubmitting] = useState(false)
   const [confirmPending, setConfirmPending] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
+  const [inputDisabled, setInputDisabled] = useState(false)
   const [nameDirty, setNameDirty] = useState(false)
   const [descriptionDirty, setDescriptionDirty] = useState(false)
   const [priceDirty, setPriceDirty] = useState(false)
@@ -65,7 +46,6 @@ export function AdminProductForm() {
     }
     reader.readAsDataURL(f)
     // auto-generate upon upload
-    const gen = autoGenerateFromFile(f)
     setName("")
     setDescription("")
     setPrice(0)
@@ -78,7 +58,7 @@ export function AdminProductForm() {
     try {
       const imagename = file?.name ?? ""
       try {
-        await fetch("https://salomohs.app.n8n.cloud/webhook/dc6538ee-abeb-4fc6-bdfb-b605fca68183", {
+        await fetch(process.env.NEXT_PUBLIC_ADD_PRODUCT_URL || "", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -90,7 +70,7 @@ export function AdminProductForm() {
           }),
         })
       } catch (err) {
-        console.error("[v0] Webhook submit error:", (err as Error).message)
+        console.error("Product add error:", (err as Error).message)
       }
 
       let imageData = preview
@@ -103,7 +83,7 @@ export function AdminProductForm() {
         })
       }
 
-      const res = await fetch("/api/products", {
+      const res = await fetch("/api/products/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -134,7 +114,6 @@ export function AdminProductForm() {
     } catch (err) {
       console.error("[v0] Save product error:", (err as Error).message)
       toast({
-        variant: "destructive",
         title: "Save failed",
         description: "An unexpected error occurred.",
       })
@@ -150,7 +129,7 @@ export function AdminProductForm() {
     fd.append("filename", f.name)
     fd.append("mimeType", f.type || "application/octet-stream")
     try {
-      const res = await fetch("https://salomohs.app.n8n.cloud/webhook/1cf4eabf-0854-48fb-8ce1-a41b1610c518", {
+      const res = await fetch(process.env.NEXT_PUBLIC_ANALYZE_PRODUCT_URL || "", {
         method: "POST",
         body: fd,
       })
@@ -173,9 +152,20 @@ export function AdminProductForm() {
   async function onConfirmImage() {
     if (!file) return
     setConfirmLoading(true)
+    setInputDisabled(false)
     try {
       const data = await sendImageToWebhook(file)
+      console.log(data)
       if (data) {
+        if ((data as any).error) {
+          const err = (data as any).error
+          console.error("❌ API Error:", err.message || err)
+          toast({
+            title: "Analyze failed",
+            description: "Image is already in database. Choose another image."
+          })
+          setInputDisabled(true)
+        }
         if (!nameDirty && typeof data.product_name === "string" && data.product_name.trim()) {
           setName(data.product_name.trim())
         }
@@ -210,6 +200,7 @@ export function AdminProductForm() {
       }
     } catch (err) {
       console.error("[v0] Confirm image parse error:", (err as Error).message)
+      setInputDisabled(true)
     } finally {
       setConfirmLoading(false)
       setConfirmPending(false)
@@ -271,9 +262,7 @@ export function AdminProductForm() {
         </div>
         {file && (
           <div className="space-y-3">
-            {confirmPending && (
-              <p className="text-sm text-muted-foreground">We’re analyzing your image. You can start editing now.</p>
-            )}
+            <p className="text-sm text-muted-foreground">Confirm your image to start analysis. You can also edit the details after analysis.</p>
             <div className="space-y-1">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -283,9 +272,9 @@ export function AdminProductForm() {
                   setName(e.target.value)
                   setNameDirty(true)
                 }}
-                disabled={confirmLoading || confirmPending}
+                disabled={confirmLoading || confirmPending || inputDisabled}
                 className={cn(
-                  confirmLoading || confirmPending ? "bg-gray-100 text-gray-400" : ""
+                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 hover:cursor-not-allowed" : ""
                 )}
                 required
               />
@@ -299,9 +288,9 @@ export function AdminProductForm() {
                   setDescription(e.target.value)
                   setDescriptionDirty(true)
                 }}
-                disabled={confirmLoading || confirmPending}
+                disabled={confirmLoading || confirmPending || inputDisabled}
                 className={cn(
-                  confirmLoading || confirmPending ? "bg-gray-100 text-gray-400" : ""
+                  confirmLoading || confirmPending || inputDisabled? "bg-gray-100 text-gray-400" : ""
                 )}
                 required
               />
@@ -318,9 +307,9 @@ export function AdminProductForm() {
                   setPrice(Math.round(Number(e.target.value || 0)))
                   setPriceDirty(true)
                 }}
-                disabled={confirmLoading || confirmPending}
+                disabled={confirmLoading || confirmPending || inputDisabled}
                 className={cn(
-                  confirmLoading || confirmPending ? "bg-gray-100 text-gray-400" : ""
+                  confirmLoading || confirmPending || inputDisabled ? "bg-gray-100 text-gray-400 hover:cursor-not-allowed" : ""
                 )}
                 required
               />
@@ -333,7 +322,7 @@ export function AdminProductForm() {
                   setCategory(v as "food" | "drink" | "none")
                   setCategoryDirty(true)
                 }}
-                disabled={confirmLoading || confirmPending}
+                disabled={confirmLoading || confirmPending || inputDisabled}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
@@ -350,7 +339,7 @@ export function AdminProductForm() {
       </div>
       {file && (
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={submitting || !file || confirmPending || confirmLoading || category === "none"}>
+          <Button type="submit" disabled={submitting || inputDisabled || !file || confirmPending || confirmLoading || category === "none"}>
             {submitting ? "Saving..." : "Save product"}
           </Button>
         </div>

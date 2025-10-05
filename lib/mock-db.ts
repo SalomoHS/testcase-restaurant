@@ -34,27 +34,25 @@ if (!globalAny.__MOCK_DB__) {
   globalAny.__MOCK_DB__ = { products: [], orders: [], seeded: false } as DB
 }
 const db: DB = globalAny.__MOCK_DB__
-async function fetchExternalMenu(): Promise<Product[]> {
-  const url = "https://salomohs.app.n8n.cloud/webhook/38d4eee1-d361-4882-acba-607c91ede421"
+async function fetchMenu(): Promise<Product[]> {
   try {
-    const res = await fetch(url, { cache: "no-store" })
+    const res = await fetch(process.env.NEXT_PUBLIC_FETCH_PRODUCT_URL || "")
     if (!res.ok) return []
     const data = await res.json()
     if (!Array.isArray(data)) return []
 
-    const now = Date.now()
-    return data.map((raw: any, idx: number) => {
-      const name = raw.name ?? raw.title ?? "Menu Item"
-      const description = raw.description ?? raw.desc ?? ""
-      // Try to read price in cents or dollars; convert dollars -> cents
+    return data.map((raw: any) => {
+      const name = raw.name ?? "Menu Item"
+      const description = raw.desc ?? ""
       const price = raw.price ?? 0
       
-      const imageData = raw.image ?? raw.imageUrl ?? raw.photo ?? "/restaurant-menu-item.jpg"
-      const categoryRaw = String(raw.category ?? raw.type ?? "").toLowerCase()
+      const imageData = raw.image ?? "/restaurant-menu-item.jpg"
+      const categoryRaw = String(raw.category ?? "").toLowerCase()
       const category: Product["category"] = categoryRaw.includes("drink") ? "drink" : "food"
-
+      const now = raw.created_at
+      const id = raw.id
       return {
-        id: `ext_${idx}_${Math.random().toString(36).slice(2, 7)}`,
+        id: id,
         name,
         description,
         price,
@@ -70,46 +68,8 @@ async function fetchExternalMenu(): Promise<Product[]> {
 async function seed() {
   if (db.seeded) return
   const now = Date.now()
-  const external = await fetchExternalMenu()
+  const external = await fetchMenu()
   const starter = [...external]
-  // const starter: Product[] = [
-  //   {
-  //     id: "p1",
-  //     name: "Margherita Pizza",
-  //     description: "Classic pizza with tomato, mozzarella, and basil.",
-  //     price: 1299,
-  //     imageData: "/margherita-pizza-on-wooden-board.jpg",
-  //     category: "food",
-  //     createdAt: now,
-  //   },
-  //   {
-  //     id: "p2",
-  //     name: "Caesar Salad",
-  //     description: "Romaine, parmesan, croutons, and Caesar dressing.",
-  //     price: 999,
-  //     imageData: "/caesar-salad-in-bowl.jpg",
-  //     category: "food",
-  //     createdAt: now,
-  //   },
-  //   {
-  //     id: "p3",
-  //     name: "Iced Latte",
-  //     description: "Chilled espresso with milk over ice.",
-  //     price: 499,
-  //     imageData: "/iced-latte-in-glass.jpg",
-  //     category: "drink",
-  //     createdAt: now,
-  //   },
-  //   {
-  //     id: "p4",
-  //     name: "Sparkling Water",
-  //     description: "Refreshing, chilled, lightly carbonated.",
-  //     price: 299,
-  //     imageData: "/bottle-of-sparkling-water.jpg",
-  //     category: "drink",
-  //     createdAt: now,
-  //   },
-  // ]
   db.products.push(...starter)
   db.seeded = true
 }
