@@ -48,8 +48,8 @@ export default function CartPage() {
       const data = await res.json()
       window.snap.pay(data.token,{
         onSuccess: function() {
-          clear()
           router.push(`/checkout/success?orderId=${encodeURIComponent(data.order_id)}`)
+          clear()
         }
       })
     } catch (e) {
